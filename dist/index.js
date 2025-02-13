@@ -55,6 +55,7 @@ app.post('/login', (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         });
     });
 }));
+//a
 app.get('/getPosts', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     //Start Db Config
     var mysql = require('mysql');
@@ -99,6 +100,14 @@ app.post('/postPost', (req, res) => __awaiter(void 0, void 0, void 0, function* 
     });
     //End Db Config
     yield con.connect(function (err) {
+        //Start Db Config
+        var mysql = require('mysql');
+        var con = mysql.createConnection({
+            host: "localhost",
+            user: "root",
+            password: "",
+            database: "oneappdb"
+        });
         con.query("SELECT count(id)+1 as maximito FROM `post` WHERE 1;", function (err, result, fields) {
             if (err)
                 throw err;
@@ -116,6 +125,39 @@ app.post('/postPost', (req, res) => __awaiter(void 0, void 0, void 0, function* 
             });
             res.send("Ok");
         });
+    });
+}));
+app.put('/putPost/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    //Start Db Config
+    var mysql = require('mysql');
+    var con = mysql.createConnection({
+        host: "localhost",
+        user: "root",
+        password: "",
+        database: "oneappdb"
+    });
+    const { id } = req.params;
+    const { titulo, contenido } = req.body;
+    con.query(`UPDATE post SET titulo = ?, contenido = ? WHERE id = ?`, [titulo, contenido, id], (err, result) => {
+        if (err)
+            throw err;
+        res.send('Post actualizado');
+    });
+}));
+app.delete('/deletePost/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    //Start Db Config
+    var mysql = require('mysql');
+    var con = mysql.createConnection({
+        host: "localhost",
+        user: "root",
+        password: "",
+        database: "oneappdb"
+    });
+    const { id } = req.params;
+    con.query(`DELETE FROM post WHERE id = ?`, [id], (err, result) => {
+        if (err)
+            throw err;
+        res.send('Post eliminado');
     });
 }));
 app.get("/", (request, response) => {

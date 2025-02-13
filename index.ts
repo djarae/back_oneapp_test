@@ -98,7 +98,14 @@ console.log(requestData.titulo)
   });
   //End Db Config
   await con.connect(function(err: any ) {
-  
+   //Start Db Config
+   var mysql = require('mysql');
+   var con = mysql.createConnection({
+     host: "localhost",
+     user: "root",
+     password: "",
+     database: "oneappdb"
+   });
     con.query("SELECT count(id)+1 as maximito FROM `post` WHERE 1;", function (err: any, result: any, fields: any) {
       if (err) throw err;
       let resultJson = JSON.stringify(result);
@@ -121,7 +128,43 @@ console.log(requestData.titulo)
 
 
  
-
+  app.put('/putPost/:id', async (req, res) => {
+     //Start Db Config
+  var mysql = require('mysql');
+  var con = mysql.createConnection({
+    host: "localhost",
+    user: "root",
+    password: "",
+    database: "oneappdb"
+  });
+    const { id } = req.params;
+    const { titulo, contenido } = req.body;
+    con.query(
+      `UPDATE post SET titulo = ?, contenido = ? WHERE id = ?`,
+      [titulo, contenido, id],
+      (err : any, result : any) => {
+        if (err) throw err;
+        res.send('Post actualizado');
+      }
+    );
+  });
+  
+  app.delete('/deletePost/:id', async (req, res) => {
+     //Start Db Config
+  var mysql = require('mysql');
+  var con = mysql.createConnection({
+    host: "localhost",
+    user: "root",
+    password: "",
+    database: "oneappdb"
+  });
+    const { id } = req.params;
+    con.query(`DELETE FROM post WHERE id = ?`, [id], (err : any, result:any) => {
+      if (err) throw err;
+      res.send('Post eliminado');
+    });
+  });
+  
 
 
 
