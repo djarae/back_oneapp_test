@@ -165,7 +165,46 @@ console.log(requestData.titulo)
     });
   });
   
-
+  app.post('/crearUsuario', async (req, res) => {
+    let maximo = "";
+    let maximoNumerico = 0;
+    const requestData = req.body;
+  
+    var mysql = require('mysql');
+    var con = mysql.createConnection({
+      host: "localhost",
+      user: "root",
+      password: "",
+      database: "oneappdb"
+    });
+  
+    await con.connect(function(err: any) {
+      con.query("SELECT * FROM usuario WHERE email = '" + requestData.email + "';", function (err: any, result: any) {
+        if (err) throw err;
+        if (result.length > 0) {
+          res.status(400).send("Error: El correo ya está registrado.");
+        } else {
+          con.query("SELECT COUNT(id) + 1 AS maximito FROM `usuario` WHERE 1;", function (err: any, result: any, fields: any) {
+            if (err) throw err;
+            let resultJson = JSON.stringify(result);
+            let jsonparse = JSON.parse(resultJson);
+            maximo = jsonparse[0].maximito;
+            maximoNumerico = parseInt(maximo);
+            maximoNumerico = maximoNumerico + 1;
+  
+            con.query("INSERT INTO usuario (id, email, contraseña, idRol, fechaCreacion) VALUES (" +
+              maximoNumerico + ", '" +
+              requestData.email + "', '" +
+              requestData.contrasena + "', " +
+              "2"+ ", CURRENT_DATE);", function (err: any, result: any) {
+                if (err) throw err;
+                res.send("Usuario creado exitosamente.");
+              });
+          });
+        }
+      });
+    });
+  });
 
 
 
