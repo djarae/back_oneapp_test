@@ -1,11 +1,13 @@
 import express, { Request, Response } from "express";
 import dotenv from "dotenv";
 var cors = require('cors')
+const bodyParser = require('body-parser');
+
+
 
 //Inicio Import locales 
 import {Post} from './model/post'
 import {DbConfig} from './config/dbconfig'
-
 
 //Fin Import locales 
 var mysql = require('mysql');
@@ -15,6 +17,44 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT;
 app.use(cors())
+
+// Middleware to parse JSON data
+app.use(bodyParser.json());
+var resultFinal : any;
+app.get('/login', async (req, res) => {
+  const requestData = req.body;
+  //console.log( requestData);console.log(requestData.titulo)
+  var mysql = require('mysql');
+  var con = mysql.createConnection({
+    host: "localhost",
+    user: "root",
+    password: "",
+    database: "oneappdb"
+  });
+  //End Db Config
+    await con.connect(function(err: any ) {
+      con.query("SELECT * FROM usuario where email='"+requestData.email+"' and contraseña='"+requestData.contraseña+"';"  , function (err: any, result: any, fields: any) {
+        try {
+          if ( (result[0].Email==requestData.email) && (result[0].Contraseña==requestData.contraseña))
+            {console.log("iguales")
+              resultFinal = true;
+              res.send(resultFinal);
+            }
+        } catch (error) {
+         console.log("error de contraseña o usuario")
+         resultFinal = false;
+         res.send(resultFinal);
+        } 
+          
+      
+       
+      });
+    });
+ 
+  });
+
+
+
 
 app.get('/getPosts', async (req, res) => {
 //Start Db Config
@@ -26,8 +66,6 @@ var con = mysql.createConnection({
   database: "oneappdb"
 });
 //End Db Config
-//Paginado: Offset es desde donde queremos buscar. Limit es la cantidad que deseamos buscar desde ese punto
-//Esto va perfecto para paginar de 10 en 10 solo debemos enviar el numero de pagina como parametro!
   let offsetValue = 10
   let Posts = new Array<Post>;
   await con.connect(function(err: any) {
@@ -40,6 +78,32 @@ var con = mysql.createConnection({
     });
   });
 });
+
+
+
+app.post('/postPost', async (req, res) => {
+  console.log("titulo es");
+  // console.log( req.body)
+  const requestData = req.body;
+  console.log( requestData)
+console.log(requestData.titulo)
+  //Start Db Config
+  var mysql = require('mysql');
+  var con = mysql.createConnection({
+    host: "localhost",
+    user: "root",
+    password: "",
+    database: "oneappdb"
+  });
+  //End Db Config
+    await con.connect(function(err: any ) {
+      con.query("Insert into post values (38,1,'"+requestData.titulo+"','"+requestData.contenido+"', CURRENT_DATE) ", function (err: any, result: any, fields: any) {
+        if (err) throw err;
+       
+      });
+    });
+    res.send("Ok");
+  });
 
 
 

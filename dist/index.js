@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
 var cors = require('cors');
+const bodyParser = require('body-parser');
 //Fin Import locales 
 var mysql = require('mysql');
 // configures dotenv to work in your application
@@ -22,6 +23,37 @@ dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT;
 app.use(cors());
+// Middleware to parse JSON data
+app.use(bodyParser.json());
+var resultFinal;
+app.get('/login', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const requestData = req.body;
+    //console.log( requestData);console.log(requestData.titulo)
+    var mysql = require('mysql');
+    var con = mysql.createConnection({
+        host: "localhost",
+        user: "root",
+        password: "",
+        database: "oneappdb"
+    });
+    //End Db Config
+    yield con.connect(function (err) {
+        con.query("SELECT * FROM usuario where email='" + requestData.email + "' and contraseña='" + requestData.contraseña + "';", function (err, result, fields) {
+            try {
+                if ((result[0].Email == requestData.email) && (result[0].Contraseña == requestData.contraseña)) {
+                    console.log("iguales");
+                    resultFinal = true;
+                    res.send(resultFinal);
+                }
+            }
+            catch (error) {
+                console.log("error de contraseña o usuario");
+                resultFinal = false;
+                res.send(resultFinal);
+            }
+        });
+    });
+}));
 app.get('/getPosts', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     //Start Db Config
     var mysql = require('mysql');
@@ -32,8 +64,6 @@ app.get('/getPosts', (req, res) => __awaiter(void 0, void 0, void 0, function* (
         database: "oneappdb"
     });
     //End Db Config
-    //Paginado: Offset es desde donde queremos buscar. Limit es la cantidad que deseamos buscar desde ese punto
-    //Esto va perfecto para paginar de 10 en 10 solo debemos enviar el numero de pagina como parametro!
     let offsetValue = 10;
     let Posts = new Array;
     yield con.connect(function (err) {
@@ -49,6 +79,29 @@ app.get('/getPosts', (req, res) => __awaiter(void 0, void 0, void 0, function* (
             res.send(Posts);
         });
     });
+}));
+app.post('/postPost', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("titulo es");
+    // console.log( req.body)
+    const requestData = req.body;
+    console.log(requestData);
+    console.log(requestData.titulo);
+    //Start Db Config
+    var mysql = require('mysql');
+    var con = mysql.createConnection({
+        host: "localhost",
+        user: "root",
+        password: "",
+        database: "oneappdb"
+    });
+    //End Db Config
+    yield con.connect(function (err) {
+        con.query("Insert into post values (38,1,'" + requestData.titulo + "','" + requestData.contenido + "', CURRENT_DATE) ", function (err, result, fields) {
+            if (err)
+                throw err;
+        });
+    });
+    res.send("Ok");
 }));
 app.get("/", (request, response) => {
     response.status(200).send("Hello World");
