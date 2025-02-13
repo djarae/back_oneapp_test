@@ -20,8 +20,9 @@ app.use(cors())
 
 // Middleware to parse JSON data
 app.use(bodyParser.json());
-var resultFinal : any;
-app.get('/login', async (req, res) => {
+var resultFinal : {};
+app.post('/login', async (req, res) => {
+  console.log("entrro al login");
   const requestData = req.body;
   //console.log( requestData);console.log(requestData.titulo)
   var mysql = require('mysql');
@@ -33,20 +34,18 @@ app.get('/login', async (req, res) => {
   });
   //End Db Config
     await con.connect(function(err: any ) {
-      con.query("SELECT * FROM usuario where email='"+requestData.email+"' and contraseña='"+requestData.contraseña+"';"  , function (err: any, result: any, fields: any) {
+      con.query("SELECT * FROM usuario where email='"+requestData.email+"' and contraseña='"+requestData.contrasena+"';"  , function (err: any, result: any, fields: any) {
         try {
-          if ( (result[0].Email==requestData.email) && (result[0].Contraseña==requestData.contraseña))
+          if ( (result[0].Email==requestData.email) && (result[0].Contraseña==requestData.contrasena))
             {console.log("iguales")
-              resultFinal = true;
+              resultFinal = "true";
               res.send(resultFinal);
             }
         } catch (error) {
-         console.log("error de contraseña o usuario")
-         resultFinal = false;
+         console.log("error de contrasena o usuario")
+         resultFinal = "false";
          res.send(resultFinal);
         } 
-          
-      
        
       });
     });
@@ -82,6 +81,8 @@ var con = mysql.createConnection({
 
 
 app.post('/postPost', async (req, res) => {
+    let maximo = ""
+    let maximoNumerico = 0
   console.log("titulo es");
   // console.log( req.body)
   const requestData = req.body;
@@ -96,15 +97,30 @@ console.log(requestData.titulo)
     database: "oneappdb"
   });
   //End Db Config
-    await con.connect(function(err: any ) {
-      con.query("Insert into post values (38,1,'"+requestData.titulo+"','"+requestData.contenido+"', CURRENT_DATE) ", function (err: any, result: any, fields: any) {
-        if (err) throw err;
-       
+  await con.connect(function(err: any ) {
+  
+    con.query("SELECT count(id)+1 as maximito FROM `post` WHERE 1;", function (err: any, result: any, fields: any) {
+      if (err) throw err;
+      let resultJson = JSON.stringify(result);
+      let jsonparse = JSON.parse(resultJson);
+       maximo = jsonparse[0].maximito
+      console.log(jsonparse[0].maximito);
+      maximoNumerico= parseInt(maximo)
+      maximoNumerico=maximoNumerico+1
+       con.connect(function(err: any ) {
+        con.query("Insert into post values ("+maximoNumerico+",1,'"+requestData.titulo+"','"+requestData.contenido+"', CURRENT_DATE) ", function (err: any, result: any, fields: any) {
+          if (err) throw err;
+         
+        });
       });
+      res.send("Ok");
     });
-    res.send("Ok");
+  
+    });
   });
 
+
+ 
 
 
 

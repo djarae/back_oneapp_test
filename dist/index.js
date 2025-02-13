@@ -26,7 +26,8 @@ app.use(cors());
 // Middleware to parse JSON data
 app.use(bodyParser.json());
 var resultFinal;
-app.get('/login', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.post('/login', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("entrro al login");
     const requestData = req.body;
     //console.log( requestData);console.log(requestData.titulo)
     var mysql = require('mysql');
@@ -38,17 +39,17 @@ app.get('/login', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     });
     //End Db Config
     yield con.connect(function (err) {
-        con.query("SELECT * FROM usuario where email='" + requestData.email + "' and contraseña='" + requestData.contraseña + "';", function (err, result, fields) {
+        con.query("SELECT * FROM usuario where email='" + requestData.email + "' and contraseña='" + requestData.contrasena + "';", function (err, result, fields) {
             try {
-                if ((result[0].Email == requestData.email) && (result[0].Contraseña == requestData.contraseña)) {
+                if ((result[0].Email == requestData.email) && (result[0].Contraseña == requestData.contrasena)) {
                     console.log("iguales");
-                    resultFinal = true;
+                    resultFinal = "true";
                     res.send(resultFinal);
                 }
             }
             catch (error) {
-                console.log("error de contraseña o usuario");
-                resultFinal = false;
+                console.log("error de contrasena o usuario");
+                resultFinal = "false";
                 res.send(resultFinal);
             }
         });
@@ -81,6 +82,8 @@ app.get('/getPosts', (req, res) => __awaiter(void 0, void 0, void 0, function* (
     });
 }));
 app.post('/postPost', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let maximo = "";
+    let maximoNumerico = 0;
     console.log("titulo es");
     // console.log( req.body)
     const requestData = req.body;
@@ -96,12 +99,24 @@ app.post('/postPost', (req, res) => __awaiter(void 0, void 0, void 0, function* 
     });
     //End Db Config
     yield con.connect(function (err) {
-        con.query("Insert into post values (38,1,'" + requestData.titulo + "','" + requestData.contenido + "', CURRENT_DATE) ", function (err, result, fields) {
+        con.query("SELECT count(id)+1 as maximito FROM `post` WHERE 1;", function (err, result, fields) {
             if (err)
                 throw err;
+            let resultJson = JSON.stringify(result);
+            let jsonparse = JSON.parse(resultJson);
+            maximo = jsonparse[0].maximito;
+            console.log(jsonparse[0].maximito);
+            maximoNumerico = parseInt(maximo);
+            maximoNumerico = maximoNumerico + 1;
+            con.connect(function (err) {
+                con.query("Insert into post values (" + maximoNumerico + ",1,'" + requestData.titulo + "','" + requestData.contenido + "', CURRENT_DATE) ", function (err, result, fields) {
+                    if (err)
+                        throw err;
+                });
+            });
+            res.send("Ok");
         });
     });
-    res.send("Ok");
 }));
 app.get("/", (request, response) => {
     response.status(200).send("Hello World");
