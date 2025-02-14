@@ -16,201 +16,12 @@ const promise_1 = require("mysql2/promise");
 const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
 var cors = require('cors');
-const bodyParser = require('body-parser');
-//Fin Import locales 
-var mysql = require('mysql');
-// configures dotenv to work in your application
+const body_parser_1 = __importDefault(require("body-parser"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT;
 app.use(cors());
-// Middleware to parse JSON data
-app.use(bodyParser.json());
-var resultFinal;
-app.post('/login', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("entrro al login");
-    const requestData = req.body;
-    //console.log( requestData);console.log(requestData.titulo)
-    var mysql = require('mysql');
-    var con = mysql.createConnection({
-        host: "localhost",
-        user: "root",
-        password: "",
-        database: "oneappdb"
-    });
-    //End Db Config
-    yield con.connect(function (err) {
-        con.query("SELECT * FROM usuario where email='" + requestData.email + "' and contraseña='" + requestData.contrasena + "';", function (err, result, fields) {
-            try {
-                if ((result[0].Email == requestData.email) && (result[0].Contraseña == requestData.contrasena)) {
-                    console.log("iguales");
-                    resultFinal = "true";
-                    res.send(resultFinal);
-                }
-            }
-            catch (error) {
-                console.log("error de contrasena o usuario");
-                resultFinal = "false";
-                res.send(resultFinal);
-            }
-        });
-    });
-}));
-//a
-app.get('/getPosts', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    //Start Db Config
-    var mysql = require('mysql');
-    var con = mysql.createConnection({
-        host: "localhost",
-        user: "root",
-        password: "",
-        database: "oneappdb"
-    });
-    //End Db Config
-    let offsetValue = 10;
-    let Posts = new Array;
-    yield con.connect(function (err) {
-        if (err)
-            throw err;
-        con.query("select * from post limit 10 offset " + offsetValue + ";", function (err, result, fields) {
-            if (err)
-                throw err;
-            Posts = result;
-            console.log("posts");
-            console.log(Posts);
-            console.log("fin posts");
-            res.send(Posts);
-        });
-    });
-}));
-app.post('/postPost', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let maximo = "";
-    let maximoNumerico = 0;
-    console.log("titulo es");
-    // console.log( req.body)
-    const requestData = req.body;
-    console.log(requestData);
-    console.log(requestData.titulo);
-    //Start Db Config
-    var mysql = require('mysql');
-    var con = mysql.createConnection({
-        host: "localhost",
-        user: "root",
-        password: "",
-        database: "oneappdb"
-    });
-    //End Db Config
-    yield con.connect(function (err) {
-        //Start Db Config
-        var mysql = require('mysql');
-        var con = mysql.createConnection({
-            host: "localhost",
-            user: "root",
-            password: "",
-            database: "oneappdb"
-        });
-        con.query("SELECT count(id)+1 as maximito FROM `post` WHERE 1;", function (err, result, fields) {
-            if (err)
-                throw err;
-            let resultJson = JSON.stringify(result);
-            let jsonparse = JSON.parse(resultJson);
-            maximo = jsonparse[0].maximito;
-            console.log(jsonparse[0].maximito);
-            maximoNumerico = parseInt(maximo);
-            maximoNumerico = maximoNumerico + 1;
-            con.connect(function (err) {
-                con.query("Insert into post values (" + maximoNumerico + ",1,'" + requestData.titulo + "','" + requestData.contenido + "', CURRENT_DATE) ", function (err, result, fields) {
-                    if (err)
-                        throw err;
-                });
-            });
-            res.send("Ok");
-        });
-    });
-}));
-app.put('/putPost/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    //Start Db Config
-    var mysql = require('mysql');
-    var con = mysql.createConnection({
-        host: "localhost",
-        user: "root",
-        password: "",
-        database: "oneappdb"
-    });
-    const { id } = req.params;
-    const { titulo, contenido } = req.body;
-    con.query(`UPDATE post SET titulo = ?, contenido = ? WHERE id = ?`, [titulo, contenido, id], (err, result) => {
-        if (err)
-            throw err;
-        res.send('Post actualizado');
-    });
-}));
-app.delete('/deletePost/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    //Start Db Config
-    var mysql = require('mysql');
-    var con = mysql.createConnection({
-        host: "localhost",
-        user: "root",
-        password: "",
-        database: "oneappdb"
-    });
-    const { id } = req.params;
-    con.query(`DELETE FROM post WHERE id = ?`, [id], (err, result) => {
-        if (err)
-            throw err;
-        res.send('Post eliminado');
-    });
-}));
-app.post('/crearUsuario', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let maximo = "";
-    let maximoNumerico = 0;
-    const requestData = req.body;
-    var mysql = require('mysql');
-    var con = mysql.createConnection({
-        host: "localhost",
-        user: "root",
-        password: "",
-        database: "oneappdb"
-    });
-    yield con.connect(function (err) {
-        con.query("SELECT * FROM usuario WHERE email = '" + requestData.email + "';", function (err, result) {
-            if (err)
-                throw err;
-            if (result.length > 0) {
-                res.status(400).send("Error: El correo ya está registrado.");
-            }
-            else {
-                con.query("SELECT COUNT(id) + 1 AS maximito FROM `usuario` WHERE 1;", function (err, result, fields) {
-                    if (err)
-                        throw err;
-                    let resultJson = JSON.stringify(result);
-                    let jsonparse = JSON.parse(resultJson);
-                    maximo = jsonparse[0].maximito;
-                    maximoNumerico = parseInt(maximo);
-                    maximoNumerico = maximoNumerico + 1;
-                    con.query("INSERT INTO usuario (id, email, contraseña, idRol, fechaCreacion) VALUES (" +
-                        maximoNumerico + ", '" +
-                        requestData.email + "', '" +
-                        requestData.contrasena + "', " +
-                        "2" + ", CURRENT_DATE);", function (err, result) {
-                        if (err)
-                            throw err;
-                        res.send("Usuario creado exitosamente.");
-                    });
-                });
-            }
-        });
-    });
-}));
-app.get("/", (request, response) => {
-    response.status(200).send("Hello World");
-});
-app.listen(PORT, () => {
-    console.log("Server running at PORT: ", PORT);
-}).on("error", (error) => {
-    // gracefully handle error
-    throw new Error(error.message);
-});
+app.use(body_parser_1.default.json());
 const pool = (0, promise_1.createPool)({
     host: "localhost",
     user: "root",
@@ -220,12 +31,84 @@ const pool = (0, promise_1.createPool)({
     connectionLimit: 10,
     queueLimit: 0,
 });
-// Obtener detalle de un post
-app.get("/post/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { email, contrasena } = req.body;
     try {
-        const { id } = req.params;
+        const [result] = yield pool.query("SELECT * FROM usuario WHERE email = ? AND contraseña = ?", [email, contrasena]);
+        if (result.length > 0) {
+            res.send("true");
+        }
+        else {
+            res.send("false");
+        }
+    }
+    catch (error) {
+        res.status(500).send("Error en el login");
+    }
+}));
+app.post("/getPosts", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { idPagina } = req.body;
+    console.log("request");
+    console.log(idPagina);
+    try {
+        const offsetValue = 10;
+        const [posts] = yield pool.query("SELECT * FROM post LIMIT 10 OFFSET " + idPagina, [offsetValue]);
+        res.send(posts);
+    }
+    catch (error) {
+        res.status(500).send("Error obteniendo posts");
+    }
+}));
+app.post("/postPost", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { titulo, contenido } = req.body;
+    try {
+        yield pool.query("INSERT INTO post (idUsuario, titulo, contenido, fechaCreacion) VALUES (?, ?, ?, CURRENT_DATE)", [1, titulo, contenido]);
+        res.send("Ok");
+    }
+    catch (error) {
+        res.status(500).send("Error creando post");
+    }
+}));
+app.put("/putPost/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    const { titulo, contenido } = req.body;
+    try {
+        yield pool.query("UPDATE post SET titulo = ?, contenido = ? WHERE id = ?", [titulo, contenido, id]);
+        res.send("Post actualizado");
+    }
+    catch (error) {
+        res.status(500).send("Error actualizando post");
+    }
+}));
+app.delete("/deletePost/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    try {
+        yield pool.query("DELETE FROM post WHERE id = ?", [id]);
+        res.send("Post eliminado");
+    }
+    catch (error) {
+        res.status(500).send("Error eliminando post");
+    }
+}));
+app.post("/crearUsuario", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { email, contrasena } = req.body;
+    try {
+        const [usuarios] = yield pool.query("SELECT * FROM usuario WHERE email = ?", [email]);
+        if (usuarios.length > 0) {
+            return res.status(400).send("Error: El correo ya está registrado.");
+        }
+        yield pool.query("INSERT INTO usuario (email, contraseña, idRol, fechaCreacion) VALUES (?, ?, ?, CURRENT_DATE)", [email, contrasena, 2]);
+        res.send("Usuario creado exitosamente.");
+    }
+    catch (error) {
+        res.status(500).send("Error creando usuario");
+    }
+}));
+app.get("/post/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    try {
         const [result] = yield pool.query("SELECT * FROM Post WHERE id = ?", [id]);
-        if (!Array.isArray(result) || result.length === 0) {
+        if (result.length === 0) {
             return res.status(404).json({ message: "Post no encontrado" });
         }
         res.json(result[0]);
@@ -234,58 +117,52 @@ app.get("/post/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.status(500).json({ message: "Error obteniendo el post", error });
     }
 }));
-// Obtener comentarios de un post
 app.post("/comentarios/getComentario", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { idPost } = req.body;
     try {
-        const requestvalue = req.body;
-        console.log("id post es ");
-        console.log(requestvalue.idPost);
-        const [result] = yield pool.query("SELECT * FROM Comentario WHERE idPost =" + requestvalue.idPost);
-        console.log(result);
-        console.log("result era");
+        const [result] = yield pool.query("SELECT * FROM Comentario WHERE idPost = ?", [idPost]);
         res.json(result);
     }
     catch (error) {
         res.status(500).json({ message: "Error obteniendo comentarios", error });
     }
 }));
-// Crear un comentario
 app.post("/comentario", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { idUsuario, idPost, contenido } = req.body;
     try {
-        const { idUsuario, idPost, contenido } = req.body;
-        const [result] = yield pool.query("INSERT INTO Comentario (idUsuario, idPost, contenido, fechaCreacion) VALUES (?, ?, ?, NOW())", [idUsuario, idPost, contenido]);
-        res.status(201).json({ message: "Comentario creado", id: result.insertId });
+        yield pool.query("INSERT INTO Comentario (idUsuario, idPost, contenido, fechaCreacion) VALUES (?, ?, ?, NOW())", [idUsuario, idPost, contenido]);
+        res.status(201).json({ message: "Comentario creado" });
     }
     catch (error) {
         res.status(500).json({ message: "Error creando comentario", error });
     }
 }));
-// Editar un comentario
 app.put("/comentario/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    const { contenido } = req.body;
     try {
-        const { id } = req.params;
-        const { contenido } = req.body;
-        const [result] = yield pool.query("UPDATE Comentario SET contenido = ? WHERE id = ?", [contenido, id]);
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: "Comentario no encontrado" });
-        }
+        yield pool.query("UPDATE Comentario SET contenido = ? WHERE id = ?", [contenido, id]);
         res.json({ message: "Comentario actualizado" });
     }
     catch (error) {
         res.status(500).json({ message: "Error editando comentario", error });
     }
 }));
-// Eliminar un comentario
 app.delete("/comentario/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
     try {
-        const { id } = req.params;
-        const [result] = yield pool.query("DELETE FROM Comentario WHERE id = ?", [id]);
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: "Comentario no encontrado" });
-        }
+        yield pool.query("DELETE FROM Comentario WHERE id = ?", [id]);
         res.json({ message: "Comentario eliminado" });
     }
     catch (error) {
         res.status(500).json({ message: "Error eliminando comentario", error });
     }
 }));
+app.get("/", (req, res) => {
+    res.status(200).send("Hello World");
+});
+app.listen(PORT, () => {
+    console.log("Server running at PORT:", PORT);
+}).on("error", (error) => {
+    throw new Error(error.message);
+});
