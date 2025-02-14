@@ -235,10 +235,14 @@ app.get("/post/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* (
     }
 }));
 // Obtener comentarios de un post
-app.get("/comentarios/:idPost", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.post("/comentarios/getComentario", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { idPost } = req.params;
-        const [result] = yield pool.query("SELECT * FROM Comentario WHERE idPost = ?", [idPost]);
+        const requestvalue = req.body;
+        console.log("id post es ");
+        console.log(requestvalue.idPost);
+        const [result] = yield pool.query("SELECT * FROM Comentario WHERE idPost =" + requestvalue.idPost);
+        console.log(result);
+        console.log("result era");
         res.json(result);
     }
     catch (error) {

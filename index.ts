@@ -253,10 +253,13 @@ app.get("/post/:id", async (req:any, res:any) => {
 });
 
 // Obtener comentarios de un post
-app.get("/comentarios/:idPost", async (req, res) => {
+app.post("/comentarios/getComentario", async (req, res) => {
   try {
-    const { idPost } = req.params;
-    const [result] = await pool.query("SELECT * FROM Comentario WHERE idPost = ?", [idPost]);
+    const requestvalue  = req.body;
+    console.log("id post es ");console.log(requestvalue.idPost);
+    const [result] = await pool.query("SELECT * FROM Comentario WHERE idPost ="+requestvalue.idPost);
+console.log(result)
+console.log("result era")
 
     res.json(result);
   } catch (error) {
