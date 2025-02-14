@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const promise_1 = require("mysql2/promise");
 const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
 var cors = require('cors');
@@ -210,3 +211,77 @@ app.listen(PORT, () => {
     // gracefully handle error
     throw new Error(error.message);
 });
+const pool = (0, promise_1.createPool)({
+    host: "localhost",
+    user: "root",
+    password: "",
+    database: "oneappdb",
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+});
+// Obtener detalle de un post
+app.get("/post/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params;
+        const [result] = yield pool.query("SELECT * FROM Post WHERE id = ?", [id]);
+        if (!Array.isArray(result) || result.length === 0) {
+            return res.status(404).json({ message: "Post no encontrado" });
+        }
+        res.json(result[0]);
+    }
+    catch (error) {
+        res.status(500).json({ message: "Error obteniendo el post", error });
+    }
+}));
+// Obtener comentarios de un post
+app.get("/comentarios/:idPost", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { idPost } = req.params;
+        const [result] = yield pool.query("SELECT * FROM Comentario WHERE idPost = ?", [idPost]);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ message: "Error obteniendo comentarios", error });
+    }
+}));
+// Crear un comentario
+app.post("/comentario", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { idUsuario, idPost, contenido } = req.body;
+        const [result] = yield pool.query("INSERT INTO Comentario (idUsuario, idPost, contenido, fechaCreacion) VALUES (?, ?, ?, NOW())", [idUsuario, idPost, contenido]);
+        res.status(201).json({ message: "Comentario creado", id: result.insertId });
+    }
+    catch (error) {
+        res.status(500).json({ message: "Error creando comentario", error });
+    }
+}));
+// Editar un comentario
+app.put("/comentario/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params;
+        const { contenido } = req.body;
+        const [result] = yield pool.query("UPDATE Comentario SET contenido = ? WHERE id = ?", [contenido, id]);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Comentario no encontrado" });
+        }
+        res.json({ message: "Comentario actualizado" });
+    }
+    catch (error) {
+        res.status(500).json({ message: "Error editando comentario", error });
+    }
+}));
+// Eliminar un comentario
+app.delete("/comentario/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params;
+        const [result] = yield pool.query("DELETE FROM Comentario WHERE id = ?", [id]);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Comentario no encontrado" });
+        }
+        res.json({ message: "Comentario eliminado" });
+    }
+    catch (error) {
+        res.status(500).json({ message: "Error eliminando comentario", error });
+    }
+}));
